@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TAMIYA MANIA TOURNAMENT</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+<style>
+  body {
+    margin: 0; padding: 30px 0 100px 0;
+    font-family: 'Orbitron', 'Kanit', sans-serif;
+    text-align: center;
+    color: white;
+    background-image: url('BG.jpg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+  }
+  h1 {
+    margin-top: 1rem; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center; gap: 0;
+  }
+  h1 .side-logo:first-child {
+    margin-right: 30px;
+    width: 600px;
+    height: auto;
+    position: relative;
+    top: 50px;
+  }
+  h1 .side-logo:last-child {
+    margin-left: 30px;
+    width: 600px;
+    height: auto;
+    position: relative;
+    top: 40px;
+  }
+  h1 .title-image {
+    max-width: 700px; width: 100%; height: auto;
+    user-select: none; pointer-events: none;
+  }
+  h2 {
+    font-size: 3.5rem; font-weight: bold; color: white;
+    margin: 0rem 0 3rem;
+  }
+  .btn, .btn-next-round, .btn-confirm {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    user-select: none;
+    transition: 0.3s ease;
+  }
+  .btn {
+    background: #ff0000;
+    color: white;
+    padding: 0.8rem 2.2rem;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+  }
+  .btn:hover { background: #cc0000; }
+  .btn-next-round {
+    background-color: #ff8c00;
+    color: white;
+    font-size: 2.5rem;
+    padding: 0.7rem 2rem;
+    margin-bottom: 2rem;
+    display: none;
+  }
+  .btn-next-round:hover { background-color: #cc7000; }
+  .btn-confirm {
+    background-color: #00aa00;
+    color: white;
+    font-size: 2.7rem;
+    padding: 1.2rem 4.5rem;
+    margin-top: 2.5rem;
+  }
+  .btn-confirm:hover:enabled { background-color: #008800; }
+  .main-wrapper {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .rounds-grid {
+    display: flex;
+    gap: 15rem;
+    justify-content: center;
+    flex-wrap: nowrap;
+    flex-direction: row;
+  }
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+  .round-block {
+    display: flex;
+    align-items: center;
+    gap: 7rem;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .round-block.selected {
+    background: rgba(0,255,0,0.2);
+    border-radius: 10px;
+  }
+  .round-block .round-label-number {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .round-block .round-label {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .round-block .round-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: white;
+    user-select: none;
+    min-width: 28px;
+    text-align: left;
+  }
+  .round-label-number {
+    width: 100px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    color: #ff0000;
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .car-list {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    min-width: 220px;
+    width: 300px; /* fix width to keep alignment consistent */
+  }
+  /* กรณีรอบที่มี 2 เลน */
+  .round-block[data-lanes="2"] .car-list {
+    justify-content: center; /* กึ่งกลาง */
+  }
+  .car-id {
+    min-width: 120px;
+    min-height: 120px;
+    background-color: white;
+    border: 7px solid #0051ba;
+    border-radius: 10px;
+    color: black;
+    font-size: 2.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    cursor: default;
+    position: relative;
+  }
+ .car-id.selected {
+  background-color: #00ff00; /* ถมพื้นหลังเขียว */
+  color: rgb(0, 0, 0);              /* ตัวหนังสือสีขาว */
+  border-color: #00ff00;     /* ขอบยังเขียวอยู่ (ถ้าจะลบก็ได้) */
+  box-shadow: none;          /* เอาเงาออกถ้าไม่ต้องการ */
+}
+
+.popup {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.popup-content {
+    background: #111;
+    border: 3px solid #ff0000; /* 2px → 3px (2*1.5=3) */
+    border-radius: 24px; /* 16px → 24px */
+    padding: 2rem 6rem 4.5rem 6rem; /* 3rem 4rem → *1.5 */
+    text-align: center;
+    max-width: 1350px; /* 900px * 1.5 */
+    width: 90%;
+    color: white;
+    position: relative;
+    user-select: none;
+}
+
+.popup-content h3 {
+    font-size: 6rem; /* 4rem * 1.5 */
+    color: #ff0000;
+    margin-bottom: 4.5rem; /* 3rem * 1.5 */
+}
+
+.lanes-labels {
+    display: flex;
+    justify-content: center;
+    gap: 4.5rem; /* 3rem * 1.5 */
+    margin-bottom: 1.5rem; /* 1rem * 1.5 */
+    font-size: 3.6rem; /* 2.4rem * 1.5 */
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.lanes-labels > div {
+    flex: 0 0 375px; /* 250px * 1.5 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.competitors {
+    display: flex;
+    justify-content: center;
+    gap: 4.5rem; /* 3rem * 1.5 */
+    min-height: 480px; /* 320px * 1.5 */
+}
+
+.competitor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 4.5px solid transparent; /* 3px * 1.5 */
+    border-radius: 21px; /* 14px * 1.5 */
+    padding: 0.75rem; /* 0.5rem * 1.5 */
+    min-width: 375px; /* 250px * 1.5 */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.competitor.selected {
+    border-color: #00ff00;
+    box-shadow: 0 0 22.5px #00ff00; /* 15px * 1.5 */
+    position: relative;
+    z-index: 2;
+}
+
+.selected-wrapper::before {
+    content: none !important;
+}
+
+.selected-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 4.5rem; /* 3rem * 1.5 */
+    margin-bottom: 1.5rem; /* 1rem * 1.5 */
+    border: none;
+    box-shadow: none;
+}
+
+.competitor img {
+    width: 375px; /* 250px * 1.5 */
+    height: 375px; /* 250px * 1.5 */
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1.2rem; /* 0.8rem * 1.5 */
+    border: 3px solid #ffffff; /* 2px * 1.5 */
+    background: #333;
+}
+
+.competitor.no-photo img {
+    border: 3px solid #888; /* 2px * 1.5 */
+    background: #222;
+}
+
+.competitor .name {
+    font-size: 3.5rem; /* 1.8rem * 1.5 */
+    margin-bottom: 1.8rem; /* 1.2rem * 1.5 */
+    color: white;
+}
+
+.competitor .car-number {
+    font-size: 3.6rem; /* 2.4rem * 1.5 */
+    font-weight: 900;
+    color: black;
+    background-color: white;
+    padding: 0.45rem 0.9rem; /* 0.3rem 0.6rem * 1.5 */
+    border-radius: 18px; /* 12px * 1.5 */
+    min-width: 78px; /* 52px * 1.5 */
+    text-align: center;
+}
+
+#loadingPopup {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.loading-spinner {
+    width: 120px; /* 80px * 1.5 */
+    height: 120px; /* 80px * 1.5 */
+    border-radius: 50%;
+    border: 13.5px solid white; /* 9px * 1.5 */
+    border-top: 13.5px solid #ff0000;
+    animation: spin 1s linear infinite;
+}
+
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+</style>
+</head>
+<body>
+  <h1>
+    <img src="MagnumSaber.png" alt="MagnumSaber" class="side-logo" />
+    <img src="Jas Tamiya.png" alt="TAMIYA MANIA" class="title-image" />
+    <img src="SonicSaber.png" alt="SonicSaber" class="side-logo" />
+  </h1>
+  <h2 id="roundTitle">QUALIFICATION ROUND</h2>
+  <button class="btn" id="startBtn">LET'S &amp; GO !</button>
+  <button class="btn-next-round" id="btnNextRound" style="display:none;">NEXT ROUND</button>
+  <div class="main-wrapper">
+    <div class="rounds-grid" id="roundsWrapper"></div>
+  </div>
+
+  <!-- Popup สำหรับสุ่ม -->
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <h3 id="popupTitle">ROUND <span class="round-number-popup">1</span></h3>
+      <div class="lanes-labels" id="lanesLabels">
+        <div>LANE 1</div>
+        <div>LANE 2</div>
+        <div>LANE 3</div>
+      </div>
+      <div class="competitors" id="competitorsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Popup เลือกผู้เข้ารอบ -->
+  <div id="popupSelect" class="popup" style="display:none;">
+    <div class="popup-content">
+      <button id="closePopupSelectBtn" style="position:absolute;top:1rem;right:1rem;font-size:6rem;color:#fff;background:none;border:none;cursor:pointer;">×</button>
+      <h3 id="popupSelectTitle">ROUND <span id="selectRoundNumber">1</span></h3>
+      <div class="lanes-labels"><div>LANE 1</div><div>LANE 2</div><div>LANE 3</div></div>
+      <div class="selected-wrapper"><div class="competitors" id="competitorsSelectContainer"></div></div>
+      <button id="confirmSelectBtn" class="btn-confirm" disabled>CONFIRM</button>
+    </div>
+  </div>
+
+  <div id="loadingPopup"><div class="loading-spinner"></div></div>
+
+<script>
+const GOOGLE_SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxX4t2uqvN9-YR4LPMcTO9e1bYldLSarP2WoXbuHXBFvqh_8yMuwVAPt-MS3I33qDA-/exec';
+
+const loadingPopup = document.getElementById('loadingPopup');
+const popup = document.getElementById('popup');
+const popupTitle = document.getElementById('popupTitle');
+const competitorsContainer = document.getElementById('competitorsContainer');
+const startBtn = document.getElementById('startBtn');
+const roundTitle = document.getElementById('roundTitle');
+const popupSelect = document.getElementById('popupSelect');
+const closePopupSelectBtn = document.getElementById('closePopupSelectBtn');
+const selectRoundNumber = document.getElementById('selectRoundNumber');
+const competitorsSelectContainer = document.getElementById('competitorsSelectContainer');
+const confirmSelectBtn = document.getElementById('confirmSelectBtn');
+const btnNextRound = document.getElementById('btnNextRound');
+const roundsWrapper = document.getElementById('roundsWrapper');
+const lanesLabels = document.getElementById('lanesLabels');
+
+let allParticipants = [];
+let roundsData = [];
+let currentRoundIndex = 0;
+let selectingRoundIndex = null;
+let selectedCompetitorsSet = new Set();
+
+function showLoading(show) {
+  loadingPopup.style.display = show ? 'flex' : 'none';
+}
+
+async function loadParticipants() {
+  showLoading(true);
+  try {
+    const res = await fetch(GOOGLE_SHEET_API_URL);
+    const data = await res.json();
+    return data.map(p => ({
+  id: p.id,
+  owner: p.owner,
+  nickname: (p.nickname && p.nickname.trim() !== '') ? p.nickname.trim() : '-',
+  image: p.image || `https://i.pravatar.cc/250?u=${p.id}`
+}));
+
+  } catch (e) {
+    alert('Fetch error: ' + e.message);
+    return [];
+  } finally {
+    showLoading(false);
+  }
+}
+
+function delay(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function createEmptyCompetitorDiv(){
+  const div = document.createElement('div');
+  div.className = 'competitor no-photo';
+  div.innerHTML = `
+    <img src="" alt="" />
+    <div class="name">&nbsp;</div>
+    <div class="car-number">&nbsp;</div>
+  `;
+  return div;
+}
+
+async function shuffleAnimation(laneIndex, containerDiv, pool) {
+  for(let i=0; i<15; i++){
+    const p = pool[Math.floor(Math.random()*pool.length)];
+    containerDiv.querySelector('img').src = p.image;
+    containerDiv.querySelector('.name').textContent = p.nickname;
+    containerDiv.querySelector('.car-number').textContent = p.id;
+    await delay(0);
+  }
+}
+
+function groupCars(pool) {
+  let groups = [];
+  let temp = [...pool];
+
+  // กรณีพิเศษ: ถ้าเหลือ 6 คัน ให้แบ่งเป็น 3 รอบ รอบละ 2 คัน
+  if (temp.length === 6) {
+  while (temp.length > 0) {
+    let pair = [];
+    let ownersInPair = new Set();
+
+    for (let i = 0; i < temp.length; i++) {
+      if (pair.length === 2) break;
+      if (!ownersInPair.has(temp[i].owner)) {
+        pair.push(temp[i]);
+        ownersInPair.add(temp[i].owner);
+      }
+    }
+
+    // ถ้าเลือกครบ 2 คันแล้ว ให้ลบออกจาก temp
+    if (pair.length === 2) {
+      for (let p of pair) {
+        let idx = temp.findIndex(x => x.id === p.id);
+        if (idx > -1) temp.splice(idx, 1);
+      }
+    } else {
+      // กรณีหาคู่ที่ owner ไม่ซ้ำไม่ได้ ให้จับตามลำดับเลย
+      pair = temp.splice(0, 2);
+    }
+
+    groups.push(pair);
+  }
+  return groups;
+}
+
+
+  while (temp.length > 0) {
+    let round = [];
+    let ownersInRound = new Set();
+
+    // จำนวนรถที่ควรใส่ในรอบนี้ (3 หรือ 2 หรือ 1)
+    let targetCount = Math.min(temp.length, 3);
+
+    // กรณีเหลือ 1 คัน และมีรอบก่อนหน้า ให้ลองผสมกับรอบก่อนหน้า
+    if (temp.length === 1 && groups.length > 0) {
+      let lastGroup = groups.pop();
+
+      if (lastGroup.length === 3) {
+        // ย้ายคันสุดท้ายออกมา แล้วสร้างรอบใหม่จาก 2 คัน
+        let movedCar = lastGroup.pop();
+        groups.push(lastGroup);
+
+        // รอบใหม่คือ รถ 1 คันจาก temp + movedCar
+        groups.push([temp.shift(), movedCar]);
+        continue; // ทำรอบต่อไป
+      } else {
+        // ถ้ารอบก่อนหน้าน้อยกว่า 3 คัน ก็เติมเพิ่มได้เลย
+        lastGroup.push(temp.shift());
+        groups.push(lastGroup);
+        continue;
+      }
+    }
+
+    // ลูปเลือกผู้เล่นที่ owner ไม่ซ้ำ จนเต็ม targetCount
+    for (let i = temp.length - 1; i >= 0; i--) {
+      let p = temp[i];
+      if (!ownersInRound.has(p.owner)) {
+        round.push(p);
+        ownersInRound.add(p.owner);
+        temp.splice(i, 1);
+      }
+      if (round.length === targetCount) break;
+    }
+
+    // ถ้ายังไม่เต็มรอบ (owner ซ้ำกันหมด) อาจต้องเติมให้ครบด้วยคนที่ owner ซ้ำ (อันนี้เลือกเติมหรือไม่ก็ได้ตามต้องการ)
+    if (round.length < targetCount && temp.length > 0) {
+      for (let i = temp.length - 1; i >= 0; i--) {
+        if (round.length === targetCount) break;
+        round.push(temp[i]);
+        temp.splice(i, 1);
+      }
+    }
+
+    groups.push(round);
+  }
+
+  return groups;
+}
+
+
+async function runAllRoundsShuffle() {
+  roundsData = [];
+  currentRoundIndex = 0;
+  roundsWrapper.innerHTML = '';
+  startBtn.style.display = 'none';
+  roundTitle.textContent = 'QUALIFICATION ROUND';
+  let pool = [...allParticipants];
+  popup.style.display = 'flex';
+
+  const groupedRounds = groupCars(pool);
+  const roundsCount = groupedRounds.length;
+
+  for(let round=1; round<=roundsCount; round++){
+    popupTitle.innerHTML = `ROUND <span class="round-number-popup">${round}</span>`;
+    competitorsContainer.innerHTML = '';
+    const currentGroup = groupedRounds[round - 1];
+
+    const laneDivs = lanesLabels.children;
+    for(let i=0; i<3; i++){
+      laneDivs[i].style.display = i < currentGroup.length ? 'flex' : 'none';
+    }
+
+    for(let lane=0; lane<currentGroup.length; lane++){
+      competitorsContainer.appendChild(createEmptyCompetitorDiv());
+    }
+
+    const winners = [];
+    for(let lane=0; lane<currentGroup.length; lane++){
+      const containerDiv = competitorsContainer.children[lane];
+      await shuffleAnimation(lane, containerDiv, currentGroup);
+      const winner = currentGroup[lane];
+      winners.push(winner);
+      containerDiv.querySelector('img').src = winner.image;
+      containerDiv.querySelector('.name').textContent = winner.nickname;
+      containerDiv.querySelector('.car-number').textContent = winner.id;
+      await delay(400);
+    }
+    roundsData.push({round, winners, passedIds: new Set()});
+    addRoundResult(round, winners);
+    await delay(1000);
+  }
+  popup.style.display = 'none';
+  roundTitle.textContent = "LET'S & GO INTO THE NEXT ROUND !";
+  roundsWrapper.querySelectorAll('.round-block').forEach((block, i) => {
+    block.addEventListener('click', () => openSelectPopup(i));
+  });
+}
+
+function addRoundResult(roundNum, competitors) {
+  const roundsPerColumn = 10;
+  let columnIndex = Math.floor((roundNum - 1) / roundsPerColumn);
+  let columnDiv = roundsWrapper.children[columnIndex];
+  if (!columnDiv) {
+    columnDiv = document.createElement('div');
+    columnDiv.className = 'column';
+    roundsWrapper.appendChild(columnDiv);
+  }
+  const roundBlock = document.createElement('div');
+  roundBlock.className = 'round-block';
+  roundBlock.dataset.roundIndex = roundNum - 1;
+  roundBlock.dataset.lanes = competitors.length;
+
+  let carListHtml = '';
+  for(let i=0; i<competitors.length; i++){
+    carListHtml += `<div class="car-id">${competitors[i].id}</div>`;
+  }
+  roundBlock.innerHTML = `
+    <div class="round-label-number">
+      <div class="round-label">ROUND</div>
+      <div class="round-number">${roundNum}</div>
+    </div>
+    <div class="car-list">
+      ${carListHtml}
+    </div>
+  `;
+  columnDiv.appendChild(roundBlock);
+}
+
+function openSelectPopup(roundIndex) {
+  selectingRoundIndex = roundIndex;
+  selectRoundNumber.textContent = roundsData[roundIndex].round;
+  popupSelect.style.display = 'flex';
+  confirmSelectBtn.disabled = true;
+  selectedCompetitorsSet.clear();
+
+  competitorsSelectContainer.innerHTML = '';
+  const winners = roundsData[roundIndex].winners;
+
+  const lanesLabelsSelect = popupSelect.querySelector('.lanes-labels');
+  const laneDivs = lanesLabelsSelect.children;
+  for(let i=0; i<3; i++){
+    laneDivs[i].style.display = i < winners.length ? 'flex' : 'none';
+  }
+
+  winners.forEach((competitor, idx) => {
+    const div = document.createElement('div');
+    div.className = 'competitor';
+    div.dataset.id = competitor.id;
+    div.innerHTML = `
+      <img src="${competitor.image}" alt="${competitor.nickname}" />
+      <div class="name">${competitor.nickname}</div>
+      <div class="car-number">${competitor.id}</div>
+    `;
+    div.addEventListener('click', () => {
+      if(div.classList.contains('selected')){
+        div.classList.remove('selected');
+        selectedCompetitorsSet.delete(competitor.id.toString());
+      } else {
+        const maxSelect = winners.length === 3 ? 2 : 1;
+        if(selectedCompetitorsSet.size >= maxSelect) return; // ป้องกันเลือกเกิน
+        selectedCompetitorsSet.add(competitor.id.toString());
+        div.classList.add('selected');
+      }
+      updateConfirmButton(winners.length);
+    });
+
+    competitorsSelectContainer.appendChild(div);
+  });
+}
+
+function updateConfirmButton(totalCompetitors){
+  let minSelect = 1;
+  let maxSelect = 1;
+  if(totalCompetitors === 3) {
+    minSelect = 1;  // **เปลี่ยนตรงนี้**
+    maxSelect = 2;
+  } else if(totalCompetitors === 2) {
+    minSelect = 1;
+    maxSelect = 1;
+  } else {
+    minSelect = 1;
+    maxSelect = 1;
+  }
+
+  // confirm ปลดล็อคถ้าเลือกจำนวนที่อยู่ในช่วง minSelect ถึง maxSelect
+  confirmSelectBtn.disabled = !(selectedCompetitorsSet.size >= minSelect && selectedCompetitorsSet.size <= maxSelect);
+}
+
+confirmSelectBtn.addEventListener('click', () => {
+  if(selectingRoundIndex === null) return;
+  const roundData = roundsData[selectingRoundIndex];
+  roundData.passedIds = new Set(selectedCompetitorsSet);
+
+  // อัปเดต popupSelect ให้แสดง selected ด้วย
+  competitorsSelectContainer.querySelectorAll('.competitor').forEach(div => {
+    const id = div.dataset.id;
+    if(roundData.passedIds.has(id)){
+      div.classList.add('selected');
+    } else {
+      div.classList.remove('selected');
+    }
+  });
+
+  console.log('Confirmed selected IDs:', [...roundData.passedIds]);
+
+  popupSelect.style.display = 'none';
+
+  updateMainSelectedBorder(selectingRoundIndex);
+
+  const allSelected = roundsData.every(r => r.passedIds && r.passedIds.size > 0);
+  btnNextRound.style.display = allSelected ? 'inline-block' : 'none';
+});
+
+function updateMainSelectedBorder(roundIndex){
+  const roundBlock = roundsWrapper.querySelector(`.round-block[data-round-index="${roundIndex}"]`);
+  if(!roundBlock) return;
+
+  roundBlock.querySelectorAll('.car-id').forEach(div => {
+    div.classList.remove('selected');
+  });
+
+  const passedIdsSet = new Set([...roundsData[roundIndex].passedIds].map(id => id.toString())); // 💡 cast เป็น string
+
+  roundBlock.querySelectorAll('.car-id').forEach(div => {
+    const carId = div.textContent.trim();
+    if(passedIdsSet.has(carId)) {
+      div.classList.add('selected'); // ✅ แสดงกรอบเขียว
+    }
+  });
+}
+
+
+closePopupSelectBtn.addEventListener('click', () => {
+  popupSelect.style.display = 'none';
+});
+
+btnNextRound.addEventListener('click', () => {
+  let nextRoundCompetitors = [];
+  roundsData.forEach(({passedIds}) => {
+    passedIds.forEach(id => {
+      const found = allParticipants.find(p => p.id === id);
+      if(found) nextRoundCompetitors.push(found);
+    });
+  });
+
+  if(nextRoundCompetitors.length === 0){
+    alert('Please select qualifiers first.');
+    return;
+  }
+
+  roundsData = [];
+  currentRoundIndex = 0;
+  roundsWrapper.innerHTML = '';
+  startBtn.style.display = 'none';
+  roundTitle.textContent = 'NEXT ROUND';
+  popup.style.display = 'flex';
+
+  (async () => {
+    const groupedRounds = groupCars(nextRoundCompetitors);
+    const roundsCount = groupedRounds.length;
+
+    for(let round=1; round<=roundsCount; round++){
+      popupTitle.innerHTML = `ROUND <span class="round-number-popup">${round}</span>`;
+      competitorsContainer.innerHTML = '';
+      const currentGroup = groupedRounds[round - 1];
+
+      const laneDivs = lanesLabels.children;
+      for(let i=0; i<3; i++){
+        laneDivs[i].style.display = i < currentGroup.length ? 'flex' : 'none';
+      }
+
+      for(let lane=0; lane<currentGroup.length; lane++){
+        competitorsContainer.appendChild(createEmptyCompetitorDiv());
+      }
+
+      const winners = [];
+      for(let lane=0; lane<currentGroup.length; lane++){
+        const containerDiv = competitorsContainer.children[lane];
+        await shuffleAnimation(lane, containerDiv, currentGroup);
+        const winner = currentGroup[lane];
+        winners.push(winner);
+        containerDiv.querySelector('img').src = winner.image;
+        containerDiv.querySelector('.name').textContent = winner.nickname;
+        containerDiv.querySelector('.car-number').textContent = winner.id;
+        await delay(400);
+      }
+      roundsData.push({round, winners, passedIds: new Set()});
+      addRoundResult(round, winners);
+      await delay(1000);
+    }
+    popup.style.display = 'none';
+    roundTitle.textContent = "LET'S & GO INTO THE NEXT ROUND !";
+    roundsWrapper.querySelectorAll('.round-block').forEach((block, i) => {
+      block.addEventListener('click', () => openSelectPopup(i));
+    });
+    btnNextRound.style.display = 'none';
+  })();
+});
+
+startBtn.addEventListener('click', async () => {
+  if(allParticipants.length === 0) {
+    alert('No participants loaded.');
+    return;
+  }
+  await runAllRoundsShuffle();
+});
+
+async function init() {
+  allParticipants = await loadParticipants();
+  startBtn.disabled = false;
+}
+
+init();
+</script>
+</body>
+</html>
